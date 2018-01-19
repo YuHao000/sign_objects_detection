@@ -31,9 +31,12 @@
 *.out
 *.app
 
-.cache
-.idb
-.ilk
-.ipch
-.ipdb
-.tlog
+*.cache
+*.idb
+*.ilk
+*.ipch
+*.ipdb
+*.tlog
+*.suo
+*.pdb
+*.log
