@@ -6,6 +6,7 @@
 #include <mutex>
 #include <memory>
 #include <condition_variable>
+#include <future>
 
 typedef std::function< void() > fn_type;
 
@@ -100,7 +101,7 @@ public:
 
 	~ThreadPool() {}
 
-	template< class _R, class _FN, class... _ARGS >
+    /*template< class _R, class _FN, class... _ARGS >
 	std::shared_ptr< AData< _R > > RunAsync(_FN _fn, _ARGS... _args)
 	{
 		std::function< _R() > rfn = std::bind(_fn, _args...);
@@ -113,6 +114,17 @@ public:
 		auto p_worker = GetFreeWorker();
 		p_worker->AppendFn(fn);
 		return p_data;
+	}*/
+
+	template< class _R, class _FN, class... _ARGS >
+	std::shared_future<_R> RunAsync(_FN _fn, _ARGS... _args)
+	{
+		std::function< _R() > rfn = std::bind(_fn, _args...);
+		//std::packaged_task<bool> task(rfn);
+		std::shared_future<_R> future = std::async(rfn);
+		/*std::thread thread(std::move(task), _args);
+		thread.detach();*/
+		return std::move(future);
 	}
 
 	template< class _FN, class... _ARGS >

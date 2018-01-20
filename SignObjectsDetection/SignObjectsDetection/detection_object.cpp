@@ -77,11 +77,8 @@ bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width
 		uchar* ptr = (uchar*)(img->imageData + y * img->widthStep);
 		for (int x = width - 1; x >= 0; --x)
 		{
-			short color = 0;
 			if (road_sign->PointInEpsilon(ptr, eps, x))
-				color = 255;
-			
-			ptr[3 * x] = ptr[3 * x + 1] = ptr[3 * x + 2] = color;
+				ptr[3 * x] = ptr[3 * x + 1] = ptr[3 * x + 2] = 255;
 		}
 	}
 
@@ -91,7 +88,7 @@ bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width
 void ObjectsDetection::ColorDetectedMass()
 {
 	ThreadPool pool;
-	std::vector<std::shared_ptr<AData<bool>>> task_list;
+	std::vector<std::shared_future<bool>> task_list;
 	for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
 	{
 		if (!(*sign_it).second)
@@ -106,13 +103,18 @@ void ObjectsDetection::ColorDetectedMass()
 		}
 	}
 
-	for (auto task : task_list)
-	{
-		if (!task)
-			continue;
+	std::for_each(task_list.begin(), task_list.end(), [](std::shared_future<bool>& task) {
+		task.get();
+	});
 
-		while (!task->ready)
-			continue;
+	for (int y = mHeight - 1; y >= 0; --y)
+	{
+		uchar* ptr = (uchar*)(mColorImage->imageData + y * mColorImage->widthStep);
+		for (int x = mWidth - 1; x >= 0; --x)
+		{
+			if (ptr[3 * x] != 255 || ptr[3 * x + 1] != 255 || ptr[3 * x + 2] != 255)
+				ptr[3 * x] = ptr[3 * x + 1] = ptr[3 * x + 2] = 0;
+		}
 	}
 }
 
