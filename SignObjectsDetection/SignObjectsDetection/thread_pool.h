@@ -8,14 +8,14 @@
 #include <condition_variable>
 #include <future>
 
-typedef std::function< void() > fn_type;
+typedef std::function< void() > func_type;
 
 
 template< class T >
-struct AData
+struct FutureObject
 {
-	AData() : ready(false) {}
-	bool ready;
+	FutureObject() : finished(false) {}
+	bool finished;
 	T data;
 };
 
@@ -27,7 +27,7 @@ public:
 	Worker() :
 		mEnabled(true),
 		mFqueue(),
-		mThread(&Worker::thread_fn, this)
+		mThread(&Worker::ThreadFunc, this)
 	{}
 
 	~Worker()
@@ -37,49 +37,21 @@ public:
 		mThread.join();
 	}
 
-	void AppendFn(fn_type fn)
-	{
-		std::unique_lock<std::mutex> locker(mMutex);
-		mFqueue.push(fn);
-		mCv.notify_one();
-	}
+	void AppendFunc(func_type fn);
 
-	size_t GetTaskCount()
-	{
-		std::unique_lock<std::mutex> locker(mMutex);
-		return mFqueue.size();
-	}
+	size_t GetTaskCount();
 
-	bool IsEmpty()
-	{
-		std::unique_lock<std::mutex> locker(mMutex);
-		return mFqueue.empty();
-	}
+	bool IsEmpty();
 
 private:
 
 	bool					mEnabled;
 	std::condition_variable mCv;
-	std::queue<fn_type>	    mFqueue;
+	std::queue<func_type>	mFqueue;
 	std::mutex				mMutex;
 	std::thread				mThread;
 
-	void thread_fn()
-	{
-		while (mEnabled)
-		{
-			std::unique_lock<std::mutex> locker(mMutex);
-			mCv.wait(locker, [&]() { return !mFqueue.empty() || !mEnabled; });
-			while (!mFqueue.empty())
-			{
-				fn_type fn = mFqueue.front();
-				locker.unlock();
-				fn();
-				locker.lock();
-				mFqueue.pop();
-			}
-		}
-	}
+	void ThreadFunc();
 };
 
 
@@ -103,34 +75,19 @@ public:
 
 	~ThreadPool() {}
 
-    template< class _R, class _FN, class... _ARGS >
-	std::shared_ptr<AData<_R>> RunAsync(_FN _fn, _ARGS... _args)
+    template< class OBJT, class FUNC, typename... ARGS >
+	std::shared_ptr<FutureObject<OBJT>> RunAsync(FUNC function, ARGS... args)
 	{
-		std::function<_R()> rfn = std::bind(_fn, _args...);
-		std::shared_ptr<AData<_R>> p_data(new AData<_R>());
-		fn_type fn = [=]()
+		std::function<OBJT()> rfn = std::bind(function, args...);
+		std::shared_ptr<FutureObject<OBJT>> p_data(new FutureObject<OBJT>());
+		func_type func = [=]()
 		{
 			p_data->data = rfn();
-			p_data->ready = true;
+			p_data->finished = true;
 		};
 		auto p_worker = GetFreeWorker();
-		p_worker->AppendFn(fn);
+		p_worker->AppendFunc(func);
 		return p_data;
-	}
-
-	/*template<class _R, class _FN, class... _ARGS>
-	std::shared_future<_R> RunAsync(_FN _fn, _ARGS... _args)
-	{
-		std::function<_R()> rfn = std::bind(_fn, _args...);
-		std::shared_future<_R> future = std::async(rfn);
-		return std::move(future);
-	}*/
-
-	template< class _FN, class... _ARGS >
-	void RunAsync(_FN _fn, _ARGS... _args)
-	{
-		auto p_worker = GetFreeWorker();
-		p_worker->AppendFn(std::bind(_fn, _args...));
 	}
 
 private:

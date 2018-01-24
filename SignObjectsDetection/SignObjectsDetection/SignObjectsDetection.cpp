@@ -2,6 +2,7 @@
 #include "mouse_click.h"
 #include "detection_objects.h"
 #include "auto_correct.h"
+#include <ctime>
 
 #include <cv.h>
 #include <cxcore.h>
@@ -99,7 +100,9 @@ int main(int argc, _TCHAR* argv[])
 		objects_detection.SetImage(color_image);
 		my_mouse.SetImage(after_correct);
 		void* p_mouse = (void*)(&my_mouse);
-		//cvAddWeighted(original, 1, after_correct, 1, 0.0, after_correct);
+		unsigned int start_time = 0;
+		unsigned int end_time = 0;
+		std::vector<int> time_list;
 
 		switch (mode)
 		{
@@ -109,7 +112,10 @@ int main(int argc, _TCHAR* argv[])
 			break;
 		case 1:
 		case 2:
+			start_time = clock();
 			objects_detection.ColorDetectedMass();
+			end_time = clock();
+			time_list.push_back(end_time - start_time);
 			objects_detection.ShowContours(color_image);
 			objects_detection.ShowContours(original);
 			my_mouse.SetImage(color_image);
@@ -130,7 +136,15 @@ int main(int argc, _TCHAR* argv[])
 		cvShowImage(CORRECTION_IMAGE, after_correct);
 		cvShowImage(IMAGE_AFTER_COLOR, color_image);
 		char c = cvWaitKey(33);
-		if (c == 27) break;
+		if (c == 27)
+		{
+			int sum = 0;
+			std::for_each(time_list.begin(), time_list.end(), [&](int value) {
+				sum += value;
+			});
+			std::cout << "ColorDetected time: " << sum / time_list.size() << "\n";
+			break;
+		}
 
 		if (c == 'm')
 		{

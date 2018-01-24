@@ -87,7 +87,7 @@ bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width
 
 void ObjectsDetection::ColorDetectedMass()
 {
-	std::vector<std::shared_ptr<AData<bool>>> task_list;
+	std::vector<std::shared_ptr<FutureObject<bool>>> task_list;
 	size_t idx = 0;
 	for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
 	{
@@ -109,8 +109,8 @@ void ObjectsDetection::ColorDetectedMass()
 		idx++;
 	}
 
-	std::for_each(task_list.begin(), task_list.end(), [](std::shared_ptr<AData<bool>>& task) {
-		while (!task->ready);
+	std::for_each(task_list.begin(), task_list.end(), [](std::shared_ptr<FutureObject<bool>>& task) {
+		while (!task->finished);
 	});
 
 	for (int y = mHeight - 1; y >= 0; --y)
@@ -134,8 +134,6 @@ void ObjectsDetection::TextureDetected(std::map< short, std::pair< int, std::str
 	int contoursCont = cvFindContours(gray, storage, &contours, sizeof(CvContour));
 	for (CvSeq* seq0 = contours; seq0 != 0; seq0 = seq0->h_next)
 	{
-		//CvSeq* result = cvApproxPoly( contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 
-		//	cvContourPerimeter(contours)*0.001, 0 );
 		CvSeq* result = seq0;
 		// вычисляем площадь и периметр контура
 		double area = fabs(cvContourArea(result));
