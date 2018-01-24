@@ -87,24 +87,30 @@ bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width
 
 void ObjectsDetection::ColorDetectedMass()
 {
-	ThreadPool pool;
-	std::vector<std::shared_future<bool>> task_list;
+	std::vector<std::shared_ptr<AData<bool>>> task_list;
+	size_t idx = 0;
 	for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
 	{
 		if (!(*sign_it).second)
+		{
+			idx++;
 			continue;
+		}
 
-		if (sign_it == mSignsList.begin())
+		if (idx == mSignsList.size() - 1)
 			ColorDetected((*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
 		else
 		{
+			ThreadPool pool;
 			auto task = pool.RunAsync<bool>(&ColorDetected, (*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
 			task_list.push_back(task);
 		}
+
+		idx++;
 	}
 
-	std::for_each(task_list.begin(), task_list.end(), [](std::shared_future<bool>& task) {
-		task.get();
+	std::for_each(task_list.begin(), task_list.end(), [](std::shared_ptr<AData<bool>>& task) {
+		while (!task->ready);
 	});
 
 	for (int y = mHeight - 1; y >= 0; --y)

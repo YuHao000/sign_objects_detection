@@ -39,20 +39,20 @@ public:
 
 	void AppendFn(fn_type fn)
 	{
-		std::unique_lock< std::mutex > locker(mMutex);
+		std::unique_lock<std::mutex> locker(mMutex);
 		mFqueue.push(fn);
 		mCv.notify_one();
 	}
 
 	size_t GetTaskCount()
 	{
-		std::unique_lock< std::mutex > locker(mMutex);
+		std::unique_lock<std::mutex> locker(mMutex);
 		return mFqueue.size();
 	}
 
 	bool IsEmpty()
 	{
-		std::unique_lock< std::mutex > locker(mMutex);
+		std::unique_lock<std::mutex> locker(mMutex);
 		return mFqueue.empty();
 	}
 
@@ -60,7 +60,7 @@ private:
 
 	bool					mEnabled;
 	std::condition_variable mCv;
-	std::queue< fn_type >	mFqueue;
+	std::queue<fn_type>	    mFqueue;
 	std::mutex				mMutex;
 	std::thread				mThread;
 
@@ -68,7 +68,7 @@ private:
 	{
 		while (mEnabled)
 		{
-			std::unique_lock< std::mutex > locker(mMutex);
+			std::unique_lock<std::mutex> locker(mMutex);
 			mCv.wait(locker, [&]() { return !mFqueue.empty() || !mEnabled; });
 			while (!mFqueue.empty())
 			{
@@ -86,7 +86,9 @@ private:
 class ThreadPool
 {
 public:
-	typedef std::shared_ptr< Worker > worker_ptr;
+	typedef std::shared_ptr<Worker> worker_ptr;
+
+	std::vector<worker_ptr> mWorkers;
 
 	ThreadPool(size_t threads = 1)
 	{
@@ -101,11 +103,11 @@ public:
 
 	~ThreadPool() {}
 
-    /*template< class _R, class _FN, class... _ARGS >
-	std::shared_ptr< AData< _R > > RunAsync(_FN _fn, _ARGS... _args)
+    template< class _R, class _FN, class... _ARGS >
+	std::shared_ptr<AData<_R>> RunAsync(_FN _fn, _ARGS... _args)
 	{
-		std::function< _R() > rfn = std::bind(_fn, _args...);
-		std::shared_ptr< AData< _R > > p_data(new AData< _R >());
+		std::function<_R()> rfn = std::bind(_fn, _args...);
+		std::shared_ptr<AData<_R>> p_data(new AData<_R>());
 		fn_type fn = [=]()
 		{
 			p_data->data = rfn();
@@ -114,18 +116,15 @@ public:
 		auto p_worker = GetFreeWorker();
 		p_worker->AppendFn(fn);
 		return p_data;
-	}*/
+	}
 
-	template< class _R, class _FN, class... _ARGS >
+	/*template<class _R, class _FN, class... _ARGS>
 	std::shared_future<_R> RunAsync(_FN _fn, _ARGS... _args)
 	{
-		std::function< _R() > rfn = std::bind(_fn, _args...);
-		//std::packaged_task<bool> task(rfn);
+		std::function<_R()> rfn = std::bind(_fn, _args...);
 		std::shared_future<_R> future = std::async(rfn);
-		/*std::thread thread(std::move(task), _args);
-		thread.detach();*/
 		return std::move(future);
-	}
+	}*/
 
 	template< class _FN, class... _ARGS >
 	void RunAsync(_FN _fn, _ARGS... _args)
@@ -151,6 +150,4 @@ private:
 		}
 		return p_worker;
 	}
-
-	std::vector< worker_ptr > mWorkers;
 };
