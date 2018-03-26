@@ -11,6 +11,10 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
+IF(NOT APPLE AND NOT MSVC)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+ENDIF()
+
 set(SRC_LIST SignObjectsDetection.cpp
              sources/auto_correct.cpp 
              sources/detection_object.cpp 

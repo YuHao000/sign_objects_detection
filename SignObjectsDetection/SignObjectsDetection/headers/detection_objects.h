@@ -3,6 +3,7 @@
 #include <cv.h>
 #include <cxcore.h>
 #include "dataanalysis.h"
+#include <map>
 
 #ifndef _EiC
 #include "cv.h"

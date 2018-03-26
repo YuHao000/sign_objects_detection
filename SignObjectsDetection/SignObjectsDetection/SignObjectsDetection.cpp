@@ -3,6 +3,7 @@
 #include "detection_objects.h"
 #include "auto_correct.h"
 #include <ctime>
+#include <map>
 
 #include <cv.h>
 #include <cxcore.h>
@@ -38,7 +39,7 @@ using namespace std;
 #define OBJECT_ONE_NAME   "Main road sign"
 
 
-int main(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
 	std::map< short, std::string > objects_map;
 	objects_map[MAIN_ROAD_SIGN] = "Main road sign";
