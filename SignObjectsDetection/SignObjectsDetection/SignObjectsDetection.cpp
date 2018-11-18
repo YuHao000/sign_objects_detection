@@ -41,20 +41,21 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    // Map with recognizable road signs
 	std::map< short, std::string > objects_map;
-	objects_map[MAIN_ROAD_SIGN] = "Main road sign";
-	objects_map[STOP_SIGN] = "Stop sign";
-	objects_map[GIVE_WAY_SIGN] = "Give way sign";
-	objects_map[CROSSWALK_SIGN] = "Crosswalk sign";
-	objects_map[OVERTAKING_SIGN] = "Overtaking prohibited sign";
-	objects_map[NO_PARK_SIGN] = "No parking sign";
-	objects_map[LEFT_SIGN] = "Left sign";
-	objects_map[RIGHT_SIGN] = "Right sign";
-	objects_map[FORWARD_SIGN] = "Forward sign";
-	objects_map[FORWARD_LEFT_SIGN] = "Forward left sign";
-	objects_map[FORWARD_RIGHT_SIGN] = "Forward right sign";
-	objects_map[LEFT_RIGHT_SIGN] = "Left right sign";
-	objects_map[GARBAGE] = "Garbage";
+    objects_map.emplace(MAIN_ROAD_SIGN, "Main road sign");
+    objects_map.emplace(STOP_SIGN, "Stop sign");
+    objects_map.emplace(GIVE_WAY_SIGN, "Give way sign");
+    objects_map.emplace(CROSSWALK_SIGN, "Crosswalk sign");
+    objects_map.emplace(OVERTAKING_SIGN, "Overtaking prohibited sign");
+    objects_map.emplace(NO_PARK_SIGN, "No parking sign");
+    objects_map.emplace(LEFT_SIGN, "Left sign");
+    objects_map.emplace(RIGHT_SIGN, "Right sign");
+    objects_map.emplace(FORWARD_SIGN, "Forward left sign");
+    objects_map.emplace(FORWARD_LEFT_SIGN, "Forward right sign");
+    objects_map.emplace(FORWARD_RIGHT_SIGN, "Left sign");
+    objects_map.emplace(LEFT_RIGHT_SIGN, "Left right sign");
+    objects_map.emplace(GARBAGE, "Garbage");
 	std::string object_name = OBJECT_ONE_NAME;
 	short object_idx = OBJECT_ONE;
 
@@ -75,8 +76,8 @@ int main(int argc, char* argv[])
 	cvNamedWindow(EQUALIZE_IMAGE, CV_WINDOW_NORMAL);
 	cvNamedWindow(IMAGE_AFTER_COLOR, CV_WINDOW_NORMAL);
 
-	int width = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
-	int height = (int)cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
+    int width = static_cast<int>(cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH));
+    int height = static_cast<int>(cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT));
 
 	MouseClick my_mouse(false, width, height);
 	int epsilon = SEARCH_EPS;
@@ -87,8 +88,8 @@ int main(int argc, char* argv[])
 	ObjectsDetection objects_detection(epsilon, width, height);
 
 	while (true)
-	{
-		frame = cvQueryFrame(capture);
+    {
+        frame = cvQueryFrame(capture);
 		cvReleaseImage(&original);
 		cvReleaseImage(&color_image);
 		cvReleaseImage(&after_correct);
@@ -108,11 +109,15 @@ int main(int argc, char* argv[])
 		switch (mode)
 		{
 		case 0:
+            // Mode for collect color features
 			cvSetMouseCallback(CORRECTION_IMAGE, MouseClick::MyMouseClick, p_mouse);
 			objects_detection.AddOptionsToObject(my_mouse, object_idx, object_name);
 			break;
 		case 1:
 		case 2:
+            // Mode for color processing each image of video flow.
+            // Also in this mode user can to select objects of interest.
+            // Based on this objects, vector of textural features are formed.
 			start_time = clock();
 			objects_detection.ColorDetectedMass();
 			end_time = clock();
@@ -125,10 +130,12 @@ int main(int argc, char* argv[])
 			objects_detection.AddTextureToObject(my_mouse, object_idx, object_name, mode);
 			break;
 		case 3:
+            // Mode for train neural network.
 			objects_detection.TrainNet();
 			mode = 4;
 			break;
 		case 4:
+            // Work mode of detector by color and textural features.
 			objects_detection.Detected(original, show_garbage);
 			break;
 		}

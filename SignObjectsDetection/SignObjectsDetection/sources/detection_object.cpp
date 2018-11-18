@@ -135,7 +135,6 @@ void ObjectsDetection::TextureDetected(std::map< short, std::pair< int, std::str
 	for (CvSeq* seq0 = contours; seq0 != 0; seq0 = seq0->h_next)
 	{
 		CvSeq* result = seq0;
-		// вычисл€ем площадь и периметр контура
 		double area = fabs(cvContourArea(result));
 		double perim = cvContourPerimeter(result);
 		if (area < SQUARE_LIMIT || perim < PERIMETER_LIMIT)
@@ -185,7 +184,6 @@ void ObjectsDetection::TextureDetected(std::map< short, std::pair< int, std::str
 		CvPoint pt = cvPoint(rect.center.x, rect.center.y);
 		CvFont font;
 		cvInitFont(&font, CV_FONT_HERSHEY_COMPLEX, 1.0, 1.0, 0, 1, CV_AA);
-		// использу€ шрифт выводим на картинку текст
 		cvPutText(original, object->Name().c_str(), pt, &font, CV_RGB(150, 0, 150));
 		cvDrawContours(original, seq0, CV_RGB(255, 0, 0), CV_RGB(100, 100, 100), 0, 3, 8);
 	}

@@ -11,6 +11,7 @@
 typedef std::function< void() > func_type;
 
 
+// Struct for get result from thread
 template< class T >
 struct FutureObject
 {
@@ -20,6 +21,7 @@ struct FutureObject
 };
 
 
+// Worker for start thread
 class Worker
 {
 public:
@@ -55,6 +57,7 @@ private:
 };
 
 
+// Base class for thread pool
 class ThreadPool
 {
 public:

@@ -33,7 +33,6 @@ void AutoCorrect::GrayWorld()
 	av.val[1] = f / av.val[1];
 	av.val[2] = f / av.val[2];
 
-	// корректируем €ркость по каналам
 	cvConvertScale(mChannel1, mChannel1, av.val[0], 0.0);
 	cvConvertScale(mChannel2, mChannel2, av.val[1], 0.0);
 	cvConvertScale(mChannel3, mChannel3, av.val[2], 0.0);

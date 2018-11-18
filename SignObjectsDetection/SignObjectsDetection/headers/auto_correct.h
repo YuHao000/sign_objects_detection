@@ -10,7 +10,7 @@
 #include <ctype.h>
 #endif
 
-
+// Auto correction class
 class AutoCorrect
 {
 public:

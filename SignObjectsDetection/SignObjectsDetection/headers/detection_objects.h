@@ -14,6 +14,7 @@
 
 #define THRESHOLD 5000
 
+// All recognizable road signs
 enum RoadSignsIdx
 {
 	MAIN_ROAD_SIGN,
@@ -31,6 +32,7 @@ enum RoadSignsIdx
 	GARBAGE
 };
 
+// Textural features: linear normalized moments
 enum TrainIdx
 {
 	FIRST_MOMENT,
@@ -45,6 +47,8 @@ enum TrainIdx
 
 class MouseClick;
 class Point;
+
+// Class for options storage
 class BaseObject
 {
 public:
@@ -57,6 +61,7 @@ public:
 };
 
 
+// Characteristics of road signs
 class RoadSigns
 {
 public:
@@ -76,6 +81,7 @@ private:
 };
 
 
+// Class to perform processing
 class ObjectsDetection
 {
 public:
@@ -98,7 +104,6 @@ private:
 	IplImage* mColorImage;
 	int mEpsilon;
 
-	//для обучения нейронной сети
 	alglib::multilayerperceptron mNet;
 	int mNumberOfFeatures;
 	int mCenterNumber;

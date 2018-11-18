@@ -10,7 +10,7 @@
 #include <ctype.h>
 #endif
 
-
+// Point in textural features area
 class Point {
 public:
 	Point(double _hu0,
@@ -27,6 +27,7 @@ public:
 	double mHu5;
 };
 
+// Mouse click handler
 class MouseClick
 {
 public:
