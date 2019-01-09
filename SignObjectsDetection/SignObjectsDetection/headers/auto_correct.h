@@ -14,15 +14,15 @@
 class AutoCorrect
 {
 public:
-	AutoCorrect(IplImage* original);
-	IplImage* GetResult();
+    AutoCorrect(IplImage* original);
+    IplImage* GetResult();
 private:
-	IplImage * mOriginal;
-	IplImage* mAfterCorrect;
-	IplImage* mChannel1;
-	IplImage* mChannel2;
-	IplImage* mChannel3;
+    IplImage * mOriginal;
+    IplImage* mAfterCorrect;
+    IplImage* mChannel1;
+    IplImage* mChannel2;
+    IplImage* mChannel3;
 
-	void AutoLevels();
-	void GrayWorld();
+    void AutoLevels();
+    void GrayWorld();
 };

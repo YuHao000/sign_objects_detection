@@ -23,8 +23,8 @@ using namespace std;
 #define SEARCH_G 0
 #define SEARCH_B 0
 #define SEARCH_X 0
-#define	SEARCH_Y 0
-#define	CHECK 0
+#define    SEARCH_Y 0
+#define    CHECK 0
 #define SEARCH_EPS 30
 #define SEARCH_EPS1 40
 #define SEARCH_EPS2 50
@@ -42,7 +42,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     // Map with recognizable road signs
-	std::map< short, std::string > objects_map;
+    std::map< short, std::string > objects_map;
     objects_map.emplace(MAIN_ROAD_SIGN, "Main road sign");
     objects_map.emplace(STOP_SIGN, "Stop sign");
     objects_map.emplace(GIVE_WAY_SIGN, "Give way sign");
@@ -56,154 +56,154 @@ int main(int argc, char* argv[])
     objects_map.emplace(FORWARD_RIGHT_SIGN, "Left sign");
     objects_map.emplace(LEFT_RIGHT_SIGN, "Left right sign");
     objects_map.emplace(GARBAGE, "Garbage");
-	std::string object_name = OBJECT_ONE_NAME;
-	short object_idx = OBJECT_ONE;
+    std::string object_name = OBJECT_ONE_NAME;
+    short object_idx = OBJECT_ONE;
 
-	IplImage* frame = 0;
-	IplImage* original = 0;
-	IplImage* after_correct = 0;
-	IplImage* equal_hist = 0;
-	IplImage* color_image = 0;
+    IplImage* frame = 0;
+    IplImage* original = 0;
+    IplImage* after_correct = 0;
+    IplImage* equal_hist = 0;
+    IplImage* color_image = 0;
 
-	CvCapture* capture = cvCreateCameraCapture(0);
-	assert(capture);
+    CvCapture* capture = cvCreateCameraCapture(0);
+    assert(capture);
 
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 1280);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 960);
+    cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 1280);
+    cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 960);
 
-	cvNamedWindow(ORIGINAL_IMAGE, CV_WINDOW_NORMAL);
-	cvNamedWindow(CORRECTION_IMAGE, CV_WINDOW_NORMAL);
-	cvNamedWindow(EQUALIZE_IMAGE, CV_WINDOW_NORMAL);
-	cvNamedWindow(IMAGE_AFTER_COLOR, CV_WINDOW_NORMAL);
+    cvNamedWindow(ORIGINAL_IMAGE, CV_WINDOW_NORMAL);
+    cvNamedWindow(CORRECTION_IMAGE, CV_WINDOW_NORMAL);
+    cvNamedWindow(EQUALIZE_IMAGE, CV_WINDOW_NORMAL);
+    cvNamedWindow(IMAGE_AFTER_COLOR, CV_WINDOW_NORMAL);
 
     int width = static_cast<int>(cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH));
     int height = static_cast<int>(cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT));
 
-	MouseClick my_mouse(false, width, height);
-	int epsilon = SEARCH_EPS;
-	short mode = 0;
-	int count_image = 0;
-	bool show_garbage = true;
+    MouseClick my_mouse(false, width, height);
+    int epsilon = SEARCH_EPS;
+    short mode = 0;
+    int count_image = 0;
+    bool show_garbage = true;
 
-	ObjectsDetection objects_detection(epsilon, width, height);
+    ObjectsDetection objects_detection(epsilon, width, height);
 
-	while (true)
+    while (true)
     {
         frame = cvQueryFrame(capture);
-		cvReleaseImage(&original);
-		cvReleaseImage(&color_image);
-		cvReleaseImage(&after_correct);
-		cvReleaseImage(&equal_hist);
-		original = cvCloneImage(frame);
+        cvReleaseImage(&original);
+        cvReleaseImage(&color_image);
+        cvReleaseImage(&after_correct);
+        cvReleaseImage(&equal_hist);
+        original = cvCloneImage(frame);
 
-		after_correct = AutoCorrect(original).GetResult();
-		color_image = cvCloneImage(after_correct);
+        after_correct = AutoCorrect(original).GetResult();
+        color_image = cvCloneImage(after_correct);
 
-		objects_detection.SetImage(color_image);
-		my_mouse.SetImage(after_correct);
-		void* p_mouse = (void*)(&my_mouse);
-		unsigned int start_time = 0;
-		unsigned int end_time = 0;
-		std::vector<int> time_list;
+        objects_detection.SetImage(color_image);
+        my_mouse.SetImage(after_correct);
+        void* p_mouse = (void*)(&my_mouse);
+        unsigned int start_time = 0;
+        unsigned int end_time = 0;
+        std::vector<int> time_list;
 
-		switch (mode)
-		{
-		case 0:
+        switch (mode)
+        {
+        case 0:
             // Mode for collect color features
-			cvSetMouseCallback(CORRECTION_IMAGE, MouseClick::MyMouseClick, p_mouse);
-			objects_detection.AddOptionsToObject(my_mouse, object_idx, object_name);
-			break;
-		case 1:
-		case 2:
+            cvSetMouseCallback(CORRECTION_IMAGE, MouseClick::MyMouseClick, p_mouse);
+            objects_detection.AddOptionsToObject(my_mouse, object_idx, object_name);
+            break;
+        case 1:
+        case 2:
             // Mode for color processing each image of video flow.
             // Also in this mode user can to select objects of interest.
             // Based on this objects, vector of textural features are formed.
-			start_time = clock();
-			objects_detection.ColorDetectedMass();
-			end_time = clock();
-			time_list.push_back(end_time - start_time);
-			objects_detection.ShowContours(color_image);
-			objects_detection.ShowContours(original);
-			my_mouse.SetImage(color_image);
-			my_mouse.SetCrackImage(original, objects_map[object_idx]);
-			cvSetMouseCallback(IMAGE_AFTER_COLOR, MouseClick::MyMouseClickForTrain, p_mouse);
-			objects_detection.AddTextureToObject(my_mouse, object_idx, object_name, mode);
-			break;
-		case 3:
+            start_time = clock();
+            objects_detection.ColorDetectedMass();
+            end_time = clock();
+            time_list.push_back(end_time - start_time);
+            objects_detection.ShowContours(color_image);
+            objects_detection.ShowContours(original);
+            my_mouse.SetImage(color_image);
+            my_mouse.SetCrackImage(original, objects_map[object_idx]);
+            cvSetMouseCallback(IMAGE_AFTER_COLOR, MouseClick::MyMouseClickForTrain, p_mouse);
+            objects_detection.AddTextureToObject(my_mouse, object_idx, object_name, mode);
+            break;
+        case 3:
             // Mode for train neural network.
-			objects_detection.TrainNet();
-			mode = 4;
-			break;
-		case 4:
+            objects_detection.TrainNet();
+            mode = 4;
+            break;
+        case 4:
             // Work mode of detector by color and textural features.
-			objects_detection.Detected(original, show_garbage);
-			break;
-		}
+            objects_detection.Detected(original, show_garbage);
+            break;
+        }
 
-		cvShowImage(ORIGINAL_IMAGE, original);
-		cvShowImage(CORRECTION_IMAGE, after_correct);
-		cvShowImage(IMAGE_AFTER_COLOR, color_image);
-		char c = cvWaitKey(33);
-		if (c == 27)
-		{
-			int sum = 0;
-			std::for_each(time_list.begin(), time_list.end(), [&](int value) {
-				sum += value;
-			});
-			std::cout << "ColorDetected time: " << sum / time_list.size() << "\n";
-			break;
-		}
+        cvShowImage(ORIGINAL_IMAGE, original);
+        cvShowImage(CORRECTION_IMAGE, after_correct);
+        cvShowImage(IMAGE_AFTER_COLOR, color_image);
+        char c = cvWaitKey(33);
+        if (c == 27)
+        {
+            int sum = 0;
+            std::for_each(time_list.begin(), time_list.end(), [&](int value) {
+                sum += value;
+            });
+            std::cout << "ColorDetected time: " << sum / time_list.size() << "\n";
+            break;
+        }
 
-		if (c == 'm')
-		{
-			object_idx = OBJECT_ONE;
-			mode = 0;
-			cout << "Main training mode" << "\n";
-		}
-		if (c == 't')
-		{
-			object_idx = OBJECT_ONE;
-			mode = 1;
-			cout << "Training mode" << "\n";
-		}
-		if (c == 'l')
-		{
-			mode = 2;
-			cout << "Learning mode" << "\n";
-		}
-		if (c == 'w')
-		{
-			mode = 3;
-			cout << "Working mode" << "\n";
-		}
+        if (c == 'm')
+        {
+            object_idx = OBJECT_ONE;
+            mode = 0;
+            cout << "Main training mode" << "\n";
+        }
+        if (c == 't')
+        {
+            object_idx = OBJECT_ONE;
+            mode = 1;
+            cout << "Training mode" << "\n";
+        }
+        if (c == 'l')
+        {
+            mode = 2;
+            cout << "Learning mode" << "\n";
+        }
+        if (c == 'w')
+        {
+            mode = 3;
+            cout << "Working mode" << "\n";
+        }
 
-		if (c == 'n')
-		{
-			object_idx++;
-			object_name = objects_map[object_idx];
-			cout << "Object: " << object_name << "\n";
-		}
-		if (c == 'g') show_garbage = !show_garbage;
-		if (c == 'c')
-		{
-			mode = 0;
-			object_idx = 0;
-			objects_detection.ClearOptions();
-		}
-		if (c == 'o')
-		{
-			mode = 0;
-			object_idx = 0;
-			objects_detection.ClearTextures();
-		}
-	}
+        if (c == 'n')
+        {
+            object_idx++;
+            object_name = objects_map[object_idx];
+            cout << "Object: " << object_name << "\n";
+        }
+        if (c == 'g') show_garbage = !show_garbage;
+        if (c == 'c')
+        {
+            mode = 0;
+            object_idx = 0;
+            objects_detection.ClearOptions();
+        }
+        if (c == 'o')
+        {
+            mode = 0;
+            object_idx = 0;
+            objects_detection.ClearTextures();
+        }
+    }
 
-	cvReleaseImage(&frame);
-	cvReleaseImage(&original);
-	cvReleaseImage(&after_correct);
-	cvReleaseImage(&equal_hist);
-	cvReleaseImage(&color_image);
-	cvDestroyAllWindows();
-	return 0;
+    cvReleaseImage(&frame);
+    cvReleaseImage(&original);
+    cvReleaseImage(&after_correct);
+    cvReleaseImage(&equal_hist);
+    cvReleaseImage(&color_image);
+    cvDestroyAllWindows();
+    return 0;
 }
 
