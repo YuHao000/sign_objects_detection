@@ -2,6 +2,7 @@
 #include "mouse_click.h"
 #include <iostream>
 #include <math.h>
+#include <future>
 #include "ap.h"
 #include "dataanalysis.h"
 #include "thread_pool.h"
@@ -87,7 +88,11 @@ bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width
 
 void ObjectsDetection::ColorDetectedMass()
 {
-    std::vector<std::shared_ptr<FutureObject<bool>>> task_list;
+    //TODO: my thread pool don't work on Linux
+    //using FutureShared = std::shared_ptr<FutureObject<bool>>;
+    using Future = std::future<bool>;
+
+    std::vector<Future> task_list;
     size_t idx = 0;
     for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
     {
@@ -101,16 +106,18 @@ void ObjectsDetection::ColorDetectedMass()
             ColorDetected((*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
         else
         {
-            ThreadPool pool;
-            auto task = pool.RunAsync<bool>(&ColorDetected, (*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
-            task_list.push_back(task);
+            //ThreadPool pool;
+            //auto task = pool.RunAsync<bool>(&ColorDetected, (*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
+            auto task = std::async(&ColorDetected, (*sign_it).second, mHeight, mWidth, mEpsilon, mColorImage);
+            task_list.push_back(std::move(task));
         }
 
         idx++;
     }
 
-    std::for_each(task_list.begin(), task_list.end(), [](std::shared_ptr<FutureObject<bool>>& task) {
-        while (!task->finished);
+    std::for_each(task_list.begin(), task_list.end(), [](Future& task) {
+        //while (!task->finished);
+        task.get();
     });
 
     for (int y = mHeight - 1; y >= 0; --y)
@@ -470,20 +477,6 @@ void ObjectsDetection::ShowContours(IplImage* original)
         double perim = cvContourPerimeter(seq0);
         if (area < SQUARE_LIMIT || perim < PERIMETER_LIMIT)
             continue;
-
-        // some decision for testing 
-        /*for( auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++ )
-        {
-        if( !( *sign_it ).second )
-        continue;
-
-        CvBox2D rect = cvMinAreaRect2( seq0, storage );
-        std::vector< BaseObject* > bases = ( *sign_it ).second->mOptions;
-        CvPoint pt = cvPoint( bases[ bases.size() - 1 ]->mX, bases[ bases.size() - 1 ]->mY );
-        CvFont font;
-        cvInitFont( &font, CV_FONT_HERSHEY_COMPLEX, 1.0, 1.0, 0, 1, CV_AA );
-        cvPutText( original, ( *sign_it ).second->Name().c_str(), pt, &font, CV_RGB(150, 0, 150) );
-        }*/
 
         cvDrawContours(original, seq0, CV_RGB(255, 0, 0), CV_RGB(100, 100, 100), 0, 3, 8);
     }
