@@ -10,6 +10,8 @@
 #include <ctype.h>
 #endif
 
+#include <memory>
+
 // Point in textural features area
 class Point {
 public:
@@ -27,6 +29,8 @@ public:
     double mHu5;
 };
 
+using PointPtr = std::shared_ptr<Point>;
+
 // Mouse click handler
 class MouseClick
 {
@@ -43,5 +47,5 @@ public:
     std::string mObjectName;
     bool mFilterImage;
     //CvHuMoments* mPoint;
-    Point* mPoint;
+    PointPtr mPoint;
 };

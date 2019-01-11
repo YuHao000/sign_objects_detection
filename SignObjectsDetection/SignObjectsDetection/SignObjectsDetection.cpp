@@ -23,8 +23,8 @@ using namespace std;
 #define SEARCH_G 0
 #define SEARCH_B 0
 #define SEARCH_X 0
-#define    SEARCH_Y 0
-#define    CHECK 0
+#define SEARCH_Y 0
+#define CHECK 0
 #define SEARCH_EPS 30
 #define SEARCH_EPS1 40
 #define SEARCH_EPS2 50

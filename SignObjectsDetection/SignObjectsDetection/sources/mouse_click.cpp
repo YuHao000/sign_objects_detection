@@ -89,12 +89,12 @@ void MouseClick::MyMouseClickForTrain(int event, int x, int y, int flags, void* 
         CvHuMoments* hu_moments = new CvHuMoments();
         cvMoments(result, &moments, 0);
         cvGetHuMoments(&moments, hu_moments);
-        my_mouse->mPoint = new Point(hu_moments->hu1,
-            hu_moments->hu2,
-            hu_moments->hu3,
-            hu_moments->hu4,
-            hu_moments->hu5,
-            hu_moments->hu6);
+        my_mouse->mPoint = std::make_shared<Point>(hu_moments->hu1,
+                                                   hu_moments->hu2,
+                                                   hu_moments->hu3,
+                                                   hu_moments->hu4,
+                                                   hu_moments->hu5,
+                                                   hu_moments->hu6);
         my_mouse->mFilterImage = true;
     }
     cvReleaseMemStorage(&storage);

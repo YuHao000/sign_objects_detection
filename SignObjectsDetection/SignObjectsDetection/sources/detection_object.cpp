@@ -34,15 +34,14 @@ RoadSigns::RoadSigns(const std::string& object_name, int width, int height)
 bool RoadSigns::PointInEpsilon(uchar* ptr, int& epsilon, int& x)
 {
     bool exist = false;
-    for (auto it = mOptions.begin(); it != mOptions.end(); it++)
+    for (auto& obj : mOptions)
     {
         if (exist)
             break;
 
-        BaseObject* obj = *it;
         exist = ((ptr[3 * x] - obj->mBlue) * (ptr[3 * x] - obj->mBlue) +
-            (ptr[3 * x + 1] - obj->mGreen) * (ptr[3 * x + 1] - obj->mGreen) +
-            (ptr[3 * x + 2] - obj->mRed) * (ptr[3 * x + 2] - obj->mRed) <= epsilon * epsilon);
+                 (ptr[3 * x + 1] - obj->mGreen) * (ptr[3 * x + 1] - obj->mGreen) +
+                 (ptr[3 * x + 2] - obj->mRed) * (ptr[3 * x + 2] - obj->mRed) <= epsilon * epsilon);
     }
 
     return exist;
@@ -247,8 +246,7 @@ void ObjectsDetection::AddOptionsToObject(MouseClick& my_mouse, short idx, std::
     if (!road_obj)
         return;
 
-    BaseObject* opt_obj = new BaseObject(my_mouse);
-    road_obj->mOptions.push_back(opt_obj);
+    road_obj->mOptions.emplace_back(new BaseObject(my_mouse));
     my_mouse.mFilterImage = false;
 }
 
@@ -381,8 +379,8 @@ void ObjectsDetection::TrainNet()
 {
     mNumberOfFeatures = LAST_MOMENT;
     int trainDataSize = 0;
-    std::vector< Point* > all_textures;
-    std::vector< Point* > main_textures;
+    std::vector< PointPtr > all_textures;
+    std::vector< PointPtr > main_textures;
     std::map< int, int > index_map;
     for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
     {
@@ -390,14 +388,14 @@ void ObjectsDetection::TrainNet()
             continue;
 
         trainDataSize += (*sign_it).second->mTexturesTrain.size();
-        std::vector< Point* >& textures = (*sign_it).second->mTexturesTrain;
+        std::vector< PointPtr >& textures = (*sign_it).second->mTexturesTrain;
         all_textures.reserve(all_textures.size() + textures.size());
         all_textures.insert(all_textures.end(), textures.begin(), textures.end());
 
-        std::vector< Point* >& base = (*sign_it).second->mTexturesBase;
+        std::vector< PointPtr >& base = (*sign_it).second->mTexturesBase;
         for (int idx = 0; idx < base.size(); idx++)
         {
-            Point* tmp_point = base[idx];
+            auto& tmp_point = base[idx];
             if (!tmp_point)
                 continue;
 
@@ -413,21 +411,19 @@ void ObjectsDetection::TrainNet()
         trainData[i] = new float[mNumberOfFeatures + 1];
 
     int counter = 0;
-    for (auto point_it = all_textures.begin(); point_it != all_textures.end(); point_it++)
+    for (auto& one : all_textures)
     {
-        Point* one = *point_it;
         std::vector< double > distance;
-        for (auto main = main_textures.begin(); main != main_textures.end(); main++)
+        for (auto& main : main_textures)
         {
-            double dist = sqrt((double)(one->mHu0 - (*main)->mHu0) * (one->mHu0 - (*main)->mHu0) +
-                (one->mHu1 - (*main)->mHu1) * (one->mHu1 - (*main)->mHu1) +
-                (one->mHu2 - (*main)->mHu2) * (one->mHu2 - (*main)->mHu2) +
-                (one->mHu3 - (*main)->mHu3) * (one->mHu3 - (*main)->mHu3) +
-                (one->mHu4 - (*main)->mHu4) * (one->mHu4 - (*main)->mHu4) +
-                (one->mHu5 - (*main)->mHu5) * (one->mHu5 - (*main)->mHu5));
+            double dist = sqrt((double)(one->mHu0 - main->mHu0) * (one->mHu0 - main->mHu0) +
+                                       (one->mHu1 - main->mHu1) * (one->mHu1 - main->mHu1) +
+                                       (one->mHu2 - main->mHu2) * (one->mHu2 - main->mHu2) +
+                                       (one->mHu3 - main->mHu3) * (one->mHu3 - main->mHu3) +
+                                       (one->mHu4 - main->mHu4) * (one->mHu4 - main->mHu4) +
+                                       (one->mHu5 - main->mHu5) * (one->mHu5 - main->mHu5));
             distance.push_back(dist);
             //double dist = cvMatchShapesNew( one, ( *main ), 3 );
-            distance.push_back(dist);
         }
 
         double mindist = distance[0];

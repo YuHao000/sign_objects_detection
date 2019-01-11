@@ -50,6 +50,8 @@ enum TrainIdx
 class MouseClick;
 class Point;
 
+using PointPtr = std::shared_ptr<Point>;
+
 // Class for options storage
 class BaseObject
 {
@@ -62,15 +64,16 @@ public:
     int mY;
 };
 
+using BaseObjectPtr = std::unique_ptr<BaseObject>;
 
 // Characteristics of road signs
 class RoadSigns
 {
 public:
     RoadSigns(const std::string& object_name, int width, int height);
-    std::vector< BaseObject* > mOptions;
-    std::vector< Point* > mTexturesBase;
-    std::vector< Point* > mTexturesTrain;
+    std::vector< BaseObjectPtr > mOptions;
+    std::vector< PointPtr > mTexturesBase;
+    std::vector< PointPtr > mTexturesTrain;
     std::string Name() { return mObjectName; }
     bool PointInEpsilon(uchar* ptr, int& epsilon, int& x);
     void Inc();
