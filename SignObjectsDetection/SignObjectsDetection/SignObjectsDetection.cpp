@@ -90,6 +90,9 @@ int main(int argc, char* argv[])
     while (true)
     {
         frame = cvQueryFrame(capture);
+        if (!frame)
+            break;
+
         cvReleaseImage(&original);
         cvReleaseImage(&color_image);
         cvReleaseImage(&after_correct);
