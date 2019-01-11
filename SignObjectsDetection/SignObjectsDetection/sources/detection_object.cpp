@@ -71,7 +71,7 @@ void ObjectsDetection::SetImage(IplImage* image)
     mColorImage = image;
 }
 
-bool ObjectsDetection::ColorDetected(RoadSigns* road_sign, int height, int width, int eps, IplImage* img)
+bool ObjectsDetection::ColorDetected(RoadSignsPtr road_sign, int height, int width, int eps, IplImage* img)
 {
     for (int y = height - 1; y >= 0; --y)
     {
@@ -176,9 +176,10 @@ void ObjectsDetection::TextureDetected(std::map< short, std::pair< int, std::str
                 object_idx = check;
             }
 
-        RoadSigns* object;
-        if (mSignsList.count(object_idx))
-            object = mSignsList[object_idx];
+        RoadSignsPtr object;
+        auto sign_it = mSignsList.find(object_idx);
+        if (sign_it != mSignsList.end())
+            object = ( *sign_it ).second;
 
         if (!object || (object_idx == GARBAGE && !show_garbage))
             continue;
@@ -206,11 +207,13 @@ void ObjectsDetection::Detected(IplImage* original, bool show_garbage)
     for (auto sign_it = mSignsList.begin(); sign_it != mSignsList.end(); sign_it++)
     {
         short idx = (*sign_it).first;
-        RoadSigns* road_signs = (*sign_it).second;
-        if (!objects_counters.count(idx))
+        auto road_signs = (*sign_it).second;
+
+        auto objects_it = objects_counters.find(idx);
+        if (objects_it == objects_counters.end())
             continue;
 
-        std::pair< int, std::string > obj_map = objects_counters[idx];
+        auto obj_map = ( *objects_it ).second;
         if (obj_map.first < THRESHOLD)
             continue;
 
@@ -219,27 +222,28 @@ void ObjectsDetection::Detected(IplImage* original, bool show_garbage)
     }
 }
 
-RoadSigns* ObjectsDetection::Object(MouseClick& my_mouse, short idx, std::string& object_name)
+RoadSignsPtr ObjectsDetection::Object(MouseClick& my_mouse, short idx, std::string& object_name)
 {
     if (!my_mouse.mFilterImage)
         return nullptr;
 
-    RoadSigns* road_obj;
-    if (mSignsList.count(idx) == 0)
+    RoadSignsPtr road_obj;
+    auto sign_it = mSignsList.find(idx);
+    if (sign_it == mSignsList.end())
     {
-        RoadSigns* new_obj = new RoadSigns(object_name, my_mouse.mWidth, my_mouse.mHeight);
-        mSignsList[idx] = new_obj;
+        auto new_obj = std::make_shared<RoadSigns>(object_name, my_mouse.mWidth, my_mouse.mHeight);
+        mSignsList.emplace(idx, new_obj);
         road_obj = new_obj;
     }
     else
-        road_obj = mSignsList[idx];
+        road_obj = ( *sign_it ).second;
 
     return road_obj;
 }
 
 void ObjectsDetection::AddOptionsToObject(MouseClick& my_mouse, short idx, std::string& object_name)
 {
-    RoadSigns* road_obj = Object(my_mouse, idx, object_name);
+    auto road_obj = Object(my_mouse, idx, object_name);
     if (!road_obj)
         return;
 
@@ -250,7 +254,7 @@ void ObjectsDetection::AddOptionsToObject(MouseClick& my_mouse, short idx, std::
 
 void ObjectsDetection::AddTextureToObject(MouseClick& my_mouse, short idx, std::string& object_name, const short& mode)
 {
-    RoadSigns* road_obj = Object(my_mouse, idx, object_name);
+    auto road_obj = Object(my_mouse, idx, object_name);
     if (!road_obj)
         return;
 

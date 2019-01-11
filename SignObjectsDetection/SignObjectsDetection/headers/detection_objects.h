@@ -12,6 +12,8 @@
 #include <ctype.h>
 #endif
 
+#include <memory>
+
 #define THRESHOLD 5000
 
 // All recognizable road signs
@@ -80,6 +82,7 @@ private:
     int mCount;
 };
 
+using RoadSignsPtr = std::shared_ptr<RoadSigns>;
 
 // Class to perform processing
 class ObjectsDetection
@@ -89,7 +92,7 @@ public:
     void TrainNet();
     void SetImage(IplImage* image);
     void ColorDetectedMass();
-    static bool ColorDetected(RoadSigns* road_sign, int height, int width, int eps, IplImage* img);
+    static bool ColorDetected(RoadSignsPtr road_sign, int height, int width, int eps, IplImage* img);
     void Detected(IplImage* original, bool show_garbage);
     void AddOptionsToObject(MouseClick& my_mouse, short idx, std::string& object_name);
     void AddTextureToObject(MouseClick& my_mouse, short idx,
@@ -98,7 +101,7 @@ public:
     void ClearOptions();
     void ClearTextures();
 private:
-    std::map< short, RoadSigns* > mSignsList;
+    std::map< short, RoadSignsPtr > mSignsList;
     int mWidth;
     int mHeight;
     IplImage* mColorImage;
@@ -110,6 +113,6 @@ private:
 
     void TextureDetected(std::map< short, std::pair< int, std::string > >& objects_counters, IplImage* original, bool show_garbage);
     double cvMatchShapesNew(CvHuMoments* HuMoments1, CvHuMoments* HuMoments2, int method);
-    RoadSigns* Object(MouseClick& my_mouse, short idx, std::string& object_name);
+    RoadSignsPtr Object(MouseClick& my_mouse, short idx, std::string& object_name);
 };
 
